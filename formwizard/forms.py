@@ -147,6 +147,12 @@ class FormWizard(object):
             step = self.determine_step()
         return str(step)
 
+    def render_backward(self, request):
+        """TODO doc"""
+        self.storage.set_current_step(request.POST['form_prev_step'])
+        form = self.get_form(data=self.storage.get_step_data(self.determine_step()))
+        return self.render(form)
+
     def get_form_initial(self, step):
         """
         Returns a dictionary which will be passed to the form for `step` 
