@@ -116,6 +116,12 @@ class FormWizard(object):
                     return self.render_next_step(form, *args, **kwargs)
         return self.render(form)
 
+    def process_reset(self):
+        """TODO doc"""
+        self.reset_wizard()
+        self.storage.set_current_step(self.get_first_step())
+        return self.render(self.get_form())
+
     def render_next_step(self, form, *args, **kwargs):
         """
         Gets called when the next step/form should be rendered. `form`
