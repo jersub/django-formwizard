@@ -1,4 +1,5 @@
 from django import forms
+from django.core.urlresolvers import get_callable
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.datastructures import SortedDict
@@ -10,13 +11,16 @@ class FormWizard(object):
     an instance.
     """
 
-    def __init__(self, storage, form_list, initial_list={}, instance_list={}):
+    def __init__(self, storage, form_list, done_view, initial_list={}, instance_list={}):
         """
         Creates a form wizard instance. `storage` is the storage backend, the
         place where step data and current state of the form gets saved.
 
         `form_list` is a list of forms. The list entries can be form classes
         of tuples of (`step_name`, `form_class`).
+
+        `done_view` is the view called to process form data after having gone
+        through all steps.
 
         `initial_list` contains a dictionary of initial data dictionaries.
         The key should be equal to the `step_name` in the `form_list`.
@@ -36,6 +40,8 @@ class FormWizard(object):
                 self.form_list[unicode(form[0])] = form[1]
             else:
                 self.form_list[unicode(i)] = form
+
+        self.done = get_callable(done_view)
 
         self.initial_list = initial_list
         self.instance_list = instance_list
@@ -323,13 +329,6 @@ class FormWizard(object):
             'form_step_count': self.num_steps,
             'form': form,
         }, context_instance=RequestContext(request))
-
-    def done(self, request, form_list):
-        """
-        This method muss be overrided by a subclass to process to form data
-        after processing all steps.
-        """
-        raise NotImplementedError("Your %s class has not defined a done() method, which is required." % self.__class__.__name__)
 
 class SessionFormWizard(FormWizard):
     """
