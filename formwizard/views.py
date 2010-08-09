@@ -8,8 +8,7 @@ def wizard(request, wizard, step_views={}, *args, **kwargs):
     After processing the request using the `_process_request` method, the
     response gets updated by the storage engine (for example add cookies).
     """
-    wizard.request = request
-    wizard.storage = get_storage(wizard.storage_name, wizard.get_wizard_name(), wizard.request)
+    wizard.storage = get_storage(wizard.storage_name, wizard.get_wizard_name(), request)
 
     if not 'default' in step_views:
         step_views['default'] = 'formwizard.views.wizard_default_step'
@@ -33,11 +32,11 @@ def wizard_default_step(request, wizard, *args, **kwargs):
         wizard.storage.set_step_data(wizard.determine_step(), wizard.process_step(form))
 
         if wizard.determine_step() == wizard.get_last_step():
-            return wizard.render_done(form, *args, **kwargs)
+            return wizard.render_done(request, form, *args, **kwargs)
         else:
-            return wizard.render_next_step(form, *args, **kwargs)
+            return wizard.render_next_step(request, form, *args, **kwargs)
 
-    return wizard.render(form)
+    return wizard.render(request, form)
 
 def _process_request(request, wizard, step_views={}, *args, **kwargs):
     """
@@ -61,7 +60,7 @@ def _process_get_request(request, wizard, *args, **kwargs):
         wizard.update_extra_context(kwargs['extra_context'])
 
     wizard.storage.set_current_step(wizard.get_first_step())
-    return wizard.render(wizard.get_form())
+    return wizard.render(request, wizard.get_form())
 
 def _process_post_request(request, wizard, step_views={}, *args, **kwargs):
     """
