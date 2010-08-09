@@ -54,7 +54,7 @@ class FormWizard(object):
         """
         return wizard(request, self, {}, *args, **kwargs)
 
-    def render_next_step(self, form, *args, **kwargs):
+    def render_next_step(self, request, form, *args, **kwargs):
         """
         Gets called when the next step/form should be rendered. `form`
         contains the last/current form.
@@ -62,7 +62,7 @@ class FormWizard(object):
         next_step = self.get_next_step()
         new_form = self.get_form(next_step, data=self.storage.get_step_data(next_step))
         self.storage.set_current_step(next_step)
-        return self.render(new_form)
+        return self.render(request, new_form)
 
     def render_backward(self, request):
         """
@@ -70,9 +70,9 @@ class FormWizard(object):
         """
         self.storage.set_current_step(request.POST['form_prev_step'])
         form = self.get_form(data=self.storage.get_step_data(self.determine_step()))
-        return self.render(form)
+        return self.render(request, form)
 
-    def render_done(self, form, *args, **kwargs):
+    def render_done(self, request, form, *args, **kwargs):
         """
         Gets called when all forms passed. The method should also re-validate
         all steps to prevent manipulation. If any form don't validate,
@@ -83,9 +83,9 @@ class FormWizard(object):
         for form_key in self.form_list.keys():
             form_obj = self.get_form(step=form_key, data=self.storage.get_step_data(form_key))
             if not form_obj.is_valid():
-                return self.render_revalidation_failure(form_key, form_obj)
+                return self.render_revalidation_failure(request, form_key, form_obj)
             final_form_list.append(form_obj)
-        return self.done(self.request, final_form_list)
+        return self.done(request, final_form_list)
 
     def get_form_prefix(self, step=None, form=None):
         """
@@ -143,14 +143,14 @@ class FormWizard(object):
         """
         return self.get_form_step_data(form)
 
-    def render_revalidation_failure(self, step, form):
+    def render_revalidation_failure(self, request, step, form):
         """
         Gets called when a form doesn't validate before rendering the done
         view. By default, it resets the current step to the first failing
         form and renders the form.
         """
         self.storage.set_current_step(step)
-        return self.render(form)
+        return self.render(request, form)
 
     def get_form_step_data(self, form):
         """
@@ -286,14 +286,14 @@ class FormWizard(object):
         context.update(new_context)
         return self.storage.set_extra_context_data(context)
 
-    def render(self, form):
+    def render(self,request, form):
         """
         Renders the acutal `form`. This method can be used to pre-process data
         or conditionally skip steps.
         """
-        return self.render_template(form)
+        return self.render_template(request, form)
 
-    def render_template(self, form=None):
+    def render_template(self, request, form=None):
         """
         Returns a `HttpResponse` containing the rendered form step. Available
         template context variables are:
@@ -322,7 +322,7 @@ class FormWizard(object):
             'form_step1': int(self.get_step_index()) + 1,
             'form_step_count': self.num_steps,
             'form': form,
-        }, context_instance=RequestContext(self.request))
+        }, context_instance=RequestContext(request))
 
     def done(self, request, form_list):
         """
