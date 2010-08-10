@@ -134,7 +134,7 @@ class FormTests(TestCase):
 
         testform = TestWizard('formwizard.storage.session.SessionStorage', [('start', Step1), ('step2', Step2)])
         response = testform(request)
-        testform.render_done(None)
+        testform.render_done(request, None)
         self.assertEqual(testform.storage.get_current_step(), 'start')
 
 class SessionFormTests(TestCase):
